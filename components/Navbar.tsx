@@ -57,7 +57,7 @@ export default function Navbar() {
             <div className="flex flex-col gap-8 p-4">
               <div className="flex flex-col gap-3">
                 <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                  Navigation
+                  Main
                 </span>
                 <Link
                   href="/faq"
