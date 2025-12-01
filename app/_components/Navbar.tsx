@@ -17,6 +17,9 @@ export default function Navbar() {
             <Link href="/about" className="text-xs font-semibold transition-colors hover:text-[#347BB2]">
               About
             </Link>
+            <Link href="/faq" className="text-xs font-semibold transition-colors hover:text-[#347BB2]">
+              FAQ
+            </Link>
           </div>
         </div>
 
