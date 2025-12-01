@@ -36,7 +36,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${inter.variable} antialiased overflow-x-hidden flex flex-col min-h-screen`}
+        className={`${inter.className} antialiased overflow-x-hidden flex flex-col min-h-screen`}
       >
         <Navbar />
         {children}
