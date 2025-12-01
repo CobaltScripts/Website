@@ -15,16 +15,26 @@ export default function Navbar() {
     <nav className="sticky top-0 z-50 w-full border-b border-white/10 bg-[var(--background)]/80 backdrop-blur-md select-none">
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-6">
         <div className="flex items-center gap-8">
-          <Link href="/" className="text-xl font-bold">
-            cobalt.
-          </Link>
+          <h1 className="text-xl font-bold">cobalt.</h1>
 
           <div className="hidden md:flex items-center gap-6">
+            <Link
+              href="/"
+              className="text-xs font-semibold transition-colors hover:text-[#347BB2]"
+            >
+              Home
+            </Link>
             <Link
               href="/faq"
               className="text-xs font-semibold transition-colors hover:text-[#347BB2]"
             >
               FAQ
+            </Link>
+            <Link
+              href="/about"
+              className="text-xs font-semibold transition-colors hover:text-[#347BB2]"
+            >
+              About
             </Link>
           </div>
         </div>
@@ -60,10 +70,22 @@ export default function Navbar() {
                   Main
                 </span>
                 <Link
+                  href="/"
+                  className="text-sm font-semibold transition-colors hover:text-[#347BB2]"
+                >
+                  Home
+                </Link>
+                <Link
                   href="/faq"
                   className="text-sm font-semibold transition-colors hover:text-[#347BB2]"
                 >
                   FAQ
+                </Link>
+                <Link
+                  href="/about"
+                  className="text-sm font-semibold transition-colors hover:text-[#347BB2]"
+                >
+                  About
                 </Link>
               </div>
               <div className="flex flex-col gap-3">

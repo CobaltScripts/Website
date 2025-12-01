@@ -4,18 +4,21 @@ export const team = [
     userId: '1441859003708866601',
     avatarHash: '46d66bb036a7198accd9c0437fa600e6',
     role: 'Developer',
+    description: 'Recodes everything from scratch and cannot make proper code for production',
   },
   {
     name: 'Oblongboot',
     userId: '768481984242253904',
     avatarHash: 'b0c1a947725d21624e88adfac7717bbf',
     role: 'Developer',
+    description: 'Does all the hard work and does not get enough credit',
   },
   {
     name: 'Twiston',
     userId: '855798460593733652',
     avatarHash: 'b9e840cdf13ef7233be9bbee01ef3c88',
     role: 'Developer',
+    description: 'Twiston is the goat and has a big brain',
   },
 ];
 
