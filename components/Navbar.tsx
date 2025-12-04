@@ -38,6 +38,12 @@ export default function Navbar() {
             >
               About
             </Link>
+            <Link
+              href="/verify"
+              className="text-sm font-semibold transition-colors hover:text-[#347BB2]"
+            >
+              Verify
+            </Link>
           </div>
         </div>
 
@@ -88,6 +94,12 @@ export default function Navbar() {
                   className="text-sm font-semibold transition-colors hover:text-[#347BB2]"
                 >
                   About
+                </Link>
+                <Link
+                  href="/verify"
+                  className="text-sm font-semibold transition-colors hover:text-[#347BB2]"
+                >
+                  Verify
                 </Link>
               </div>
               <div className="flex flex-col gap-3">
