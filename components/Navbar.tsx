@@ -40,7 +40,7 @@ export default function Navbar() {
             </Link>
             <Link
               href="/verify"
-              className="text-sm font-semibold transition-colors hover:text-[#347BB2]"
+              className="text-xs font-semibold transition-colors hover:text-[#347BB2]"
             >
               Verify
             </Link>
