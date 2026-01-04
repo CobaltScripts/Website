@@ -28,11 +28,22 @@ export default function Home() {
           </div>
         </div>
 
-        <Button variant="outline" size={"sm"} asChild>
-          <Link href="/faq">
-            Learn More<ChevronRight/>
-          </Link>
-        </Button>
+        <div className="flex gap-2 pt-2">
+          <Button variant="outline" size="sm" asChild>
+            <Link href="/faq">
+              Learn More <ChevronRight />
+            </Link>
+          </Button>
+          <Button variant="outline" size="sm" asChild>
+            <Link
+              href="https://github.com/CobaltScripts/Cobalt/releases"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Download now <ChevronRight />
+            </Link>
+          </Button>
+        </div>
       </div>
     </main>
   );
