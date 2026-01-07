@@ -2,7 +2,7 @@ export const team = [
   {
     name: 'Nathan',
     userId: '1441859003708866601',
-    avatarHash: 'c0bced946099dd23765cbd4b40547cdf',
+    avatarHash: '143db91d70b1d4aabf88cd678cd12380',
     role: 'Developer',
     description: 'Recodes everything from scratch and cannot make proper code for production',
   },
