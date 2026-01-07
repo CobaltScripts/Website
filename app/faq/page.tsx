@@ -19,8 +19,14 @@ export default function FAQ() {
             <AccordionContent>
               Cobalt is a mod for Minecraft 1.21.10 which speeds up
               the slow progression of Hypixel Skyblock; it is
-              currently in development and is not yet available for
-              download.
+              currently in development and is now open source! Check out{' '}
+              <a
+                href="https://github.com/CobaltScripts/Cobalt"
+                className="text-blue-400 hover:underline"
+              >
+                github.com/CobaltScripts/Cobalt
+              </a>{' '}
+              for more information.
             </AccordionContent>
           </AccordionItem>
           <AccordionItem value="item-2">
@@ -53,7 +59,7 @@ export default function FAQ() {
               Is Cobalt safe to use?
             </AccordionTrigger>
             <AccordionContent>
-              The base mod and approved addons are safe from malware.
+              The base mod and approved addons are safe from malware. (IF AN ADDON IS NOT APPROVED BY US THAT MEANS THAT IT HAS NOT BE CHECKED FOR MALWARE)
               However, Cobalt violates Hypixel&apos;s rules therefore
               we try our best to prevent bans, we cannot ensure that
               Cobalt will not cause you to get banned.
@@ -64,9 +70,7 @@ export default function FAQ() {
               How do I install Cobalt?
             </AccordionTrigger>
             <AccordionContent>
-              As of right now, Cobalt is not available for download,
-              once it is released, you can find the installation
-              instructions here: First, install{' '}
+              First, install{' '}
               <a
                 href="https://fabricmc.net/use/"
                 className="text-blue-400 hover:underline"
@@ -97,8 +101,7 @@ export default function FAQ() {
               Can I contribute to Cobalt?
             </AccordionTrigger>
             <AccordionContent>
-              Not currently, after the mod is open source we will be
-              open for contributions.
+              Yes! We are now open source meaning that contributions are welcome!
             </AccordionContent>
           </AccordionItem>
           <AccordionItem value="item-8">
