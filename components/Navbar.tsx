@@ -15,9 +15,7 @@ const navLinks = [
 
 const mobileLinks = [
   { href: '/', label: 'Home' },
-  { href: '/faq', label: 'FAQ' },
   { href: '/about', label: 'About' },
-  { href: '/verify', label: 'Verify' },
 ];
 
 export default function Navbar() {
