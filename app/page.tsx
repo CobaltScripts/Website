@@ -48,7 +48,7 @@ export default function Home() {
           </h1>
           <h2 className="text-4xl md:text-5xl font-extrabold mb-8">
             <span className="text-[var(--accent-color)] underline decoration-wavy decoration-2 underline-offset-8">
-              It's free.
+              It's opensource.
             </span>
           </h2>
 
