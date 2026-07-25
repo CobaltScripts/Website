@@ -21,27 +21,6 @@
   --glass-text: #f8fafc;
 }
 
-[data-theme='light'] {
-  --bg-primary: #f8fafc;
-  --bg-secondary: #f1f5f9;
-  --text-primary: #0f172a;
-  --text-secondary: #475569;
-  --accent-color: #1d4ed8;
-  --accent-hover: #1e40af;
-  --border-color: rgba(0, 0, 0, 0.08);
-  --glow-color: rgba(37, 99, 235, 0.15);
-  --btn-secondary-bg: rgba(0, 0, 0, 0.05);
-  --btn-secondary-hover: rgba(0, 0, 0, 0.08);
-  --btn-secondary-text: #0f172a;
-  --badge-bg: rgba(29, 78, 216, 0.06);
-  --badge-border: rgba(29, 78, 216, 0.18);
-  --glass-bg: rgba(37, 99, 235, 0.12);
-  --glass-border: rgba(37, 99, 235, 0.22);
-  --glass-bg-hover: rgba(29, 78, 216, 0.22);
-  --glass-border-hover: rgba(29, 78, 216, 0.4);
-  --glass-text: #0f172a;
-}
-
 body,
 .btn-primary,
 .btn-secondary,
