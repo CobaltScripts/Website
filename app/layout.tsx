@@ -1,9 +1,9 @@
 import type { Metadata, Viewport } from 'next';
-import { Inter } from 'next/font/google';
+import { Space_Grotesk } from 'next/font/google';
 import './globals.css';
 
-const inter = Inter({
-  variable: '--font-inter',
+const regular = Space_Grotesk({
+  variable: '--font-regular',
   subsets: ['latin'],
 });
 
@@ -24,7 +24,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: '#4682B4',
+  themeColor: '#2c5086',
 };
 
 export default function RootLayout({
@@ -35,7 +35,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${inter.className} antialiased overflow-x-hidden flex flex-col min-h-screen`}
+        className={`${regular.className} antialiased overflow-x-hidden flex flex-col min-h-screen`}
       >
         {children}
       </body>

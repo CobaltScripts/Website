@@ -1,28 +1,27 @@
-import React from 'react';
-import { IconType } from 'react-icons';
+import { FiExternalLink } from 'react-icons/fi';
 
-interface GlassButtonProps {
+interface ButtonProps {
   text: string;
   url: string;
-  icon?: IconType | React.ComponentType<{ className?: string }>;
   external?: boolean;
 }
 
-export default function GlassButton({
-  text,
-  url,
-  icon: Icon,
-  external = true,
-}: GlassButtonProps) {
+const base = 'inline-flex items-center gap-2 px-6 py-3 rounded-lg font-semibold text-sm transition-all duration-200 active:scale-95 select-none';
+
+export default function Button({ text, url, external = false }: ButtonProps) {
   return (
     <a
       href={url}
       target={external ? '_blank' : '_self'}
       rel={external ? 'noopener noreferrer' : undefined}
-      className="btn-glass select-none"
+      className={
+        external
+          ? `${base} text-(--text-primary) border border-(--border-color) hover:bg-(--text-secondary)/10`
+          : `${base} bg-(--accent-color) text-white hover:brightness-75 hover:shadow-lg hover:shadow-(--accent-color)/20`
+      }
     >
-      {Icon && <Icon className="w-5 h-5 shrink-0" />}
       <span>{text}</span>
+      {external && <FiExternalLink className="w-4 h-4" />}
     </a>
   );
 }
