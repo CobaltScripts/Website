@@ -1,0 +1,134 @@
+# Scripts
+
+Scripts are modules that automate multi-step tasks. Unlike regular modules, scripts are toggled through the script manager and support pause/resume and failsafes.
+
+## Script vs Module
+
+| Feature | Module | Script |
+|---------|--------|--------|
+| Toggle in GUI | Yes | Via script manager |
+| Pause/resume | No | Yes |
+| Failsafes | No | Yes |
+| Background image | No | Optional |
+| Settings | Yes | Yes |
+| Events | Yes | Yes |
+
+## Creating a script
+
+Extend `Script`:
+
+```kotlin
+object AutoFishing : Script(
+    name = "AutoFishing",
+    category = ModuleCategory.SKILLS,
+    backgroundResourcePath = "/assets/cobalt/ui/scripts/fishing.png",
+    failsafes = listOf(MyFailsafe)
+) {
+    private val castDelay by SliderSetting(
+        name = "Cast Delay",
+        description = "Delay between casts",
+        defaultValue = 10,
+        min = 1,
+        max = 50
+    )
+
+    override fun onEnable() {
+        super.onEnable()
+    }
+
+    override fun onDisable() {
+        super.onDisable()
+    }
+
+    @SubscribeEvent
+    fun onTick(event: TickEvent.Start) {
+        if (!enabled) return
+    }
+}
+```
+
+## Script lifecycle
+
+```
+startScript() → onEnable()
+    ↓
+stopScript()  → onDisable()
+    ↓
+pause()       → unsubscribes events
+resume()      → re-subscribes events
+```
+
+Only one script can be active at a time. Starting a new script stops the current one.
+
+## Controlling scripts
+
+```kotlin
+ModuleManager.startScript(MyScript)
+ModuleManager.stopScript()
+ModuleManager.pauseScript()
+ModuleManager.resumeScript()
+```
+
+## Script state pattern
+
+Break your script into states, each handling one phase:
+
+```kotlin
+abstract class ScriptState {
+    open fun enter() {}
+    open fun exit() {}
+    open fun onTick() {}
+    open fun onRender() {}
+}
+```
+
+```kotlin
+class CastRodState : ScriptState() {
+    override fun enter() {
+        InventoryUtils.selectHotbarSlot(0)
+        Mouse.rightClick()
+    }
+
+    override fun onTick() {
+        changeState(CatchState())
+    }
+}
+
+class CatchState : ScriptState() {
+    private val wait = Clock()
+
+    override fun enter() {
+        wait.schedule(2000)
+    }
+
+    override fun onTick() {
+        if (wait.passed()) changeState(CastRodState())
+    }
+}
+```
+
+Track the current state in your script:
+
+```kotlin
+var state: ScriptState? = null
+
+fun changeState(new: ScriptState?) {
+    state?.exit()
+    new?.enter()
+    state = new
+}
+```
+
+## Hooks
+
+```kotlin
+override fun onPause()  // called when paused
+override fun onResume() // called when resumed
+override fun failsafeDelayTicks(): Int // ticks before failsafe reaction
+```
+
+## Background
+
+```kotlin
+backgroundResourcePath = "/assets/cobalt/ui/scripts/fishing.png"
+```

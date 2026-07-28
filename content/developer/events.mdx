@@ -1,0 +1,169 @@
+# Events
+
+The event system lets you react to things happening in the game. Events are posted on the `EventBus`, and you listen to them by annotating methods with `@SubscribeEvent`.
+
+## Listening to events
+
+Any object can register as a listener. Methods must take exactly one parameter (the event type) and return `Unit`:
+
+```kotlin
+EventBus.register(this)
+
+// or in a Module's onEnable (auto-subscribes)
+```
+
+```kotlin
+@SubscribeEvent
+fun onTick(event: TickEvent.Start) {
+    // runs every tick
+}
+```
+
+### Event annotations
+
+```kotlin
+@SubscribeEvent(
+    priority = Event.Priority.MEDIUM,
+    ignoreCancelled = false,
+    once = false
+)
+```
+
+- **priority** – order of execution: `HIGHEST`, `HIGH`, `MEDIUM`, `LOW`, `LOWEST`
+- **ignoreCancelled** – if true, receives cancellable events even when cancelled
+- **once** – automatically unregisters after the first dispatch
+
+## Available events
+
+### TickEvent
+
+Fired every game tick.
+
+```kotlin
+@SubscribeEvent
+fun onTick(event: TickEvent.Start)
+fun onTick(event: TickEvent.End)
+```
+
+### RenderEvent
+
+Fired when the HUD or notification layer is rendered.
+
+```kotlin
+@SubscribeEvent
+fun onHud(event: RenderEvent.Hud) {
+    // Access event.graphics (GuiGraphicsExtractor)
+    // Access event.deltaTracker (DeltaTracker)
+    // Use SkiaPIP.drawSkia(graphics) { ... }
+}
+
+@SubscribeEvent
+fun onNotification(event: RenderEvent.Notification)
+```
+
+### WorldEvent
+
+```kotlin
+@SubscribeEvent
+fun onWorldChange(event: WorldEvent.Change)
+
+@SubscribeEvent
+fun onBeforeGizmos(event: WorldEvent.BeforeGizmos) {
+    // Called before world gizmos render, after entities
+    // Good time to do per-frame rotation updates
+}
+```
+
+### GuiEvent
+
+```kotlin
+@SubscribeEvent
+fun onGuiOpen(event: GuiEvent.Open)   // screen opened
+fun onGuiDraw(event: GuiEvent.Draw)   // screen drawn
+fun onGuiClose(event: GuiEvent.Close) // screen closed
+```
+
+The screen is available via `event.screen`.
+
+### PacketEvent
+
+For intercepting network traffic. Both `Send` and `Receive` are **cancellable**.
+
+```kotlin
+@SubscribeEvent
+fun onPacketSend(event: PacketEvent.Send) {
+    // event.packet is the Packet<?>
+}
+
+@SubscribeEvent
+fun onPacketReceive(event: PacketEvent.Receive) {
+    // Cancel it:
+    event.setCancelled(true)
+}
+```
+
+### MouseEvent
+
+```kotlin
+@SubscribeEvent
+fun onMouse(event: MouseEvent) {
+    val button = event.button  // LEFT, RIGHT, or MIDDLE
+    val action = event.action  // PRESS or RELEASE
+}
+```
+
+### MouseScrollEvent
+
+```kotlin
+@SubscribeEvent
+fun onScroll(event: MouseScrollEvent) {
+    val h = event.horizontalAmount
+    val v = event.verticalAmount
+}
+```
+
+### ChatSendEvent
+
+```kotlin
+@SubscribeEvent
+fun onChat(event: ChatSendEvent) {
+    val msg = event.message
+    event.setCancelled(true) // blocks the message
+}
+```
+
+## Lambda listeners
+
+For quick one-off listeners without a full class:
+
+```kotlin
+val token = EventBus.registerLambda<TickEvent.Start>(
+    priority = Event.Priority.HIGH,
+    once = true // auto-removes after first fire
+) { event ->
+    println("First tick only!")
+}
+
+// Later:
+EventBus.unregister(token)
+```
+
+## Posting custom events
+
+You can post your own events. Just implement the `Event` interface (or extend `Event.Cancellable` for cancellable events):
+
+```kotlin
+class MyCustomEvent(val data: String) : Event.Cancellable()
+
+// Post it:
+EventBus.post(MyCustomEvent("hello"))
+```
+
+## Cancelling events
+
+For cancellable events:
+
+```kotlin
+event.setCancelled(true)
+event.isCancelled() // check if cancelled
+```

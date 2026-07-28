@@ -1,7 +1,10 @@
-import { Footer, Layout, Navbar } from 'nextra-theme-docs';
+import { Layout, Navbar } from 'nextra-theme-docs';
 import { getPageMap } from 'nextra/page-map';
 
-const navbar = <Navbar logo={<b>Cobalt Docs</b>} />;
+const navbar = <Navbar
+  className="[&_a:hover]:text-blue-400"
+  logo={<b>Cobalt</b>}
+/>;
 
 export default async function DocsLayout({
   children,

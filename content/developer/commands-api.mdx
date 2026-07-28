@@ -1,0 +1,100 @@
+# Commands
+
+Cobalt uses a Brigadier-based command system with a `.` prefix. The system automatically builds command trees from annotations on your functions.
+
+## Creating a command
+
+Extend `Command` and annotate functions with `@DefaultHandler` or `@SubCommand`:
+
+```kotlin
+import org.cobalt.command.Command
+import org.cobalt.command.annotation.DefaultHandler
+import org.cobalt.command.annotation.SubCommand
+
+object MyCommand : Command(
+    name = "mycmd",
+    aliases = listOf("mc")
+) {
+  
+    @DefaultHandler
+    fun main() {
+        ChatUtils.sendSystemMessage("Ran .mycmd!")
+    }
+
+    @SubCommand
+    fun hello() {
+        ChatUtils.sendSystemMessage("Hello!")
+    }
+    
+}
+```
+
+This automatically creates:
+- `.mycmd` → runs `main()`
+- `.mycmd hello` → runs `hello()`
+- `.mc` → alias for `.mycmd`
+
+## Arguments
+
+Add parameters to your function and they become command arguments automatically. Supported types:
+
+```kotlin
+@SubCommand
+fun teleport(x: Double, y: Double, z: Double) {
+    // .mycmd teleport <x> <y> <z>
+}
+
+@SubCommand
+fun greet(name: String, times: Int) {
+    // .mycmd greet <name> <times>
+}
+
+@SubCommand
+fun toggle(flag: Boolean) {
+    // .mycmd toggle <true|false>
+}
+
+@SubCommand
+fun scale(value: Float) {
+    // .mycmd scale <value>
+}
+```
+
+| Kotlin type | Brigadier type |
+|-------------|---------------|
+| `Double` | `DoubleArgumentType` |
+| `Int` | `IntegerArgumentType` |
+| `String` | `StringArgumentType.word()` |
+| `Boolean` | `BoolArgumentType` |
+| `Float` | `FloatArgumentType` |
+
+Arguments are required by default. Argument names are inferred from the parameter names.
+
+## Registration
+
+Register your command in your addon's `onLoad()`:
+
+```kotlin
+CommandManager.registerCommand(MyCommand)
+```
+
+Built-in commands are registered in `CommandManager.registerCommands()`.
+
+## Aliases
+
+Commands can have multiple aliases:
+
+```kotlin
+object MyCommand : Command(
+    name = "mycmd",
+    aliases = listOf("mc", "mycommand", "m")
+)
+```
+
+All aliases share the same subcommand tree.
+
+## Built-in commands
+
+- `.cobalt` / `.cb` – opens the config GUI
+- `.cobalt hud` – opens the HUD editor
+- `.cobalt debug` – lists registered event listeners

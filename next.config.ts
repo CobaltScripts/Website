@@ -9,9 +9,4 @@ export default withNextra({
   images: {
     unoptimized: true,
   },
-  turbopack: {
-    resolveAlias: {
-      'next-mdx-import-source-file': './mdx-components.ts',
-    },
-  },
 });

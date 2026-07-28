@@ -1,5 +1,13 @@
 const meta = {
-  index: 'Introduction',
-};
+  "index": "Home",
+  "player": {
+    "title": "Player Guide",
+    "type": "page"
+  },
+  "developer": {
+    "title": "Developer Guide",
+    "type": "page"
+  }
+}
 
-export default meta;
+export default meta

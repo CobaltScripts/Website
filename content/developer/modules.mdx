@@ -1,0 +1,160 @@
+# Modules
+
+Modules are the core building block of Cobalt's feature system. A module is a toggleable piece of functionality with settings, event listeners, and its own config file.
+
+## Creating a module
+
+Extend the `Module` class and give it a name and category:
+
+```kotlin
+package com.example
+
+import org.cobalt.module.Module
+import org.cobalt.module.ModuleCategory
+
+object AutoFish : Module(
+    name = "AutoFish",
+    category = ModuleCategory.FARMING
+)
+```
+
+### Module lifecycle
+
+```
+Registration → onRegistration() → config loaded
+    ↓
+Toggle ON   → onEnable()  → subscribes to events
+Toggle OFF  → onDisable() → unsubscribes from events
+```
+
+## Adding settings
+
+Use Kotlin's `by` delegation to add settings. They're automatically persisted and rendered in the GUI:
+
+```kotlin
+object AutoFish : Module(
+    name = "AutoFish",
+    category = ModuleCategory.FARMING
+) {
+  
+    private val delay by SliderSetting(
+        name = "Delay",
+        description = "Ticks between casts",
+        defaultValue = 10,
+        min = 1,
+        max = 100
+    )
+
+    private val soundEnabled by CheckboxSetting(
+        name = "Sound Alert",
+        description = "Play a sound when a fish is caught",
+        defaultValue = true
+    )
+
+    override fun onEnable() {
+        super.onEnable()
+        // Settings are ready to use
+        println("Delay is $delay ms")
+    }
+    
+}
+```
+
+## Reacting to events
+
+Annotate methods with `@SubscribeEvent` inside your module. They are automatically registered when the module is enabled:
+
+```kotlin
+object AutoFish : Module(
+    name = "AutoFish",
+    category = ModuleCategory.FARMING
+) {
+  
+    @SubscribeEvent
+    fun onTick(event: TickEvent.Start) {
+        // runs every tick when module is enabled
+    }
+    
+}
+```
+
+## Categories
+
+| Category | Description |
+|----------|-------------|
+| `COMBAT` | PvP / combat features |
+| `FARMING` | Farming automation |
+| `SKILLS` | Skill training (fishing, enchanting, etc.) |
+| `FAILSAFE` | Emergency reactions |
+| `VISUAL` | HUD elements and visual enhancements |
+| `MISC` | Everything else |
+
+## Non-toggleable modules
+
+If a module shouldn't be manually toggled (like an always-on system):
+
+```kotlin
+object Rotations : Module(
+    name = "Rotations",
+    category = ModuleCategory.MISC,
+    toggleable = false,
+    startValue = true
+)
+```
+
+Non-toggleable modules ignore the enabled toggle in the GUI.
+
+## Renderable modules
+
+For HUD elements that render on screen, use `RenderableModule`:
+
+```kotlin
+object MyHUD : RenderableModule(
+    name = "MyHUD",
+    category = ModuleCategory.VISUAL,
+    xPos = 100f,
+    yPos = 50f,
+    scale = 1.0f
+) {
+  
+    override val width: Float
+        get() = calculateWidth()
+
+    override val height: Float
+        get() = 60f
+
+    override fun renderComponent() {
+        // Draw using SkiaRenderer
+        SkiaRenderer.text(
+            font = SkiaRenderer.regularFont,
+            text = "Hello!",
+            x = xPos, y = yPos,
+            size = 16f,
+            color = theme.textPrimary
+        )
+    }
+    
+}
+```
+
+Renderable modules can be repositioned and resized in the HUD editor (`.cobalt hud`). Their position and scale are saved per-module.
+
+## Registration
+
+Modules are registered with `ModuleManager.addModule()`:
+
+```kotlin
+// In your addon's onLoad()
+ModuleManager.addModule(MyModule)
+```
+
+This loads the module's config, calls `onRegistration()`, and registers event hooks if the module was previously enabled.
+
+## Config persistence
+
+Settings are automatically saved to JSON files under `config/cobalt/modules/`. Each module gets its own file named after its identifier. The config system handles:
+- Enabled state
+- All setting values
+- Renderable positions and scale
+
+No manual serialization needed.

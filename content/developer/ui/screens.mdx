@@ -1,0 +1,130 @@
+# Screens
+
+Cobalt renders its own UI screens using Skia for hardware-accelerated 2D rendering, rather than Minecraft's native draw calls.
+
+## UIScreen
+
+The base class for custom Cobalt screens. It extends Minecraft's `Screen` but redirects rendering through Skia.
+
+```kotlin
+class MyScreen : UIScreen() {
+
+    init {
+        components.add(MyComponent)
+    }
+
+    override fun renderSkia() {
+        SkiaRenderer.rect(0f, 0f, 100f, 100f, theme.backgroundPrimary)
+        components.forEach { it.renderComponent() }
+    }
+}
+```
+
+Open it with:
+
+```kotlin
+minecraft.gui.setScreen(MyScreen)
+```
+
+## UIComponent
+
+The base class for all UI elements. Components can be nested, and events bubble up from children to parents.
+
+```kotlin
+class MyComponent : UIComponent(
+    xPos = 10f, yPos = 10f,
+    width = 200f, height = 50f
+) {
+    override fun renderComponent() {
+        SkiaRenderer.roundedRect(xPos, yPos, width, height, 5f, theme.backgroundPrimary)
+    }
+
+    override fun mouseClicked(button: Int): Boolean {
+        if (Mouse.isHoveringOver(xPos, yPos, width, height)) {
+            // clicked!
+            return true
+        }
+        return false
+    }
+}
+```
+
+### Available overrides
+
+```kotlin
+renderComponent()                                 // draw
+mouseClicked(button: Int): Boolean                // click
+mouseReleased(button: Int): Boolean               // release
+mouseDragged(button: Int, dx: Double, dy: Double): Boolean  // drag
+mouseScrolled(hAmount: Double, vAmount: Double): Boolean    // scroll
+charTyped(input: CharacterEvent): Boolean         // text input
+keyPressed(input: KeyEvent): Boolean              // key press
+keyReleased(input: KeyEvent): Boolean             // key release
+```
+
+### Component helpers
+
+```kotlin
+component.updateBounds(x, y)  // reposition, returns self for chaining
+component.addChild(child)     // add as a child
+component.removeAllChildren() // clear children
+theme                         // access active theme
+```
+
+## Animations
+
+Components can use animations for smooth transitions:
+
+```kotlin
+class SlideComponent : UIComponent(width = 200f, height = 50f) {
+
+    private val slideAnim = EaseOutAnimation(200L)
+
+    override fun renderComponent() {
+        val offset = slideAnim.get(-30f, 0f)
+        SkiaRenderer.rect(xPos + offset, yPos, width, height, theme.accentPrimary)
+    }
+}
+```
+
+| Animation | Type | Behavior |
+|-----------|------|----------|
+| `EaseOutAnimation(ms)` | Float | Smooth quadratic ease-out |
+| `BounceAnimation(ms)` | Float | Overshoots then settles |
+| `ColorAnimation(ms)` | Color/Int | Interpolates between two colors |
+
+### Animation API
+
+```kotlin
+anim.start()                    // start the animation
+anim.get(start, end, reverse)   // get current value (true = play backwards)
+anim.isAnimating()              // check if running
+```
+
+## Notifications
+
+Cobalt has a built-in notification system that shows animated toasts:
+
+```kotlin
+NotificationManager.queue(
+    title = "Fishing Complete",
+    description = "Caught 5 fish",
+    duration = Duration.seconds(3)
+)
+
+NotificationManager.clear()  // dismiss all
+```
+
+Notifications stack from the bottom-right, up to 3 visible. They include:
+- Title and description (word-wrapped)
+- Sliding animation
+- Progress bar for the duration
+
+## Built-in screens
+
+| Screen | How to open |
+|--------|-------------|
+| `ConfigScreen` | `.cobalt` command or `O` key |
+| `HudEditorScreen` | `.cobalt hud` command |
+
+Both save module config on close.
