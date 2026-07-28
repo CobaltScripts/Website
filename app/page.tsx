@@ -29,7 +29,11 @@ export default function Home() {
           <div className="flex flex-wrap gap-4 items-center justify-center">
             <Button text="Docs" url="/docs" />
             <Button text="Github" url={info.githubRepo} external />
-            <Button text="Discord" url={info.discordServer} external />
+            <Button
+              text="Discord"
+              url={info.discordServer}
+              external
+            />
           </div>
         </div>
       </main>

@@ -20,8 +20,8 @@ export default function NotFound() {
           </h2>
 
           <p className="text-base text-(--text-secondary) leading-relaxed mb-10">
-            The page you&apos;re looking for doesn&apos;t exist or has been
-            moved. Let&apos;s get you back to safety.
+            The page you&apos;re looking for doesn&apos;t exist or has
+            been moved. Let&apos;s get you back to safety.
           </p>
 
           <Button text="Home" url="/" />

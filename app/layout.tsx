@@ -7,15 +7,16 @@ const regular = Space_Grotesk({
   subsets: ['latin'],
 });
 
-export const metadata: Metadata = {
-  title: 'Cobalt',
-  description:
-    'Experience the next level of Skyblock and maximize your grinding potential with Cobalt.',
+const title = 'Cobalt';
+const description =
+  'Experience the next level of Skyblock and maximize your grinding potential with Cobalt.';
 
+export const metadata: Metadata = {
+  title,
+  description,
   openGraph: {
-    title: 'Cobalt',
-    description:
-      'Experience the next level of Skyblock and maximize your grinding potential with Cobalt.',
+    title,
+    description,
     url: 'https://cobalt.quiteboring.dev',
     siteName: 'cobalt.quiteboring.dev',
     locale: 'en_US',
@@ -33,10 +34,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body
-        className={`${regular.className} antialiased overflow-x-hidden flex flex-col min-h-screen`}
-      >
+    <html lang="en" className="dark" suppressHydrationWarning>
+      <body className={`${regular.className} antialiased`}>
         {children}
       </body>
     </html>

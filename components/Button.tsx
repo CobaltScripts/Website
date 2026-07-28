@@ -6,9 +6,14 @@ interface ButtonProps {
   external?: boolean;
 }
 
-const base = 'inline-flex items-center gap-2 px-6 py-3 rounded-lg font-semibold text-sm transition-all duration-200 active:scale-95 select-none';
+const base =
+  'inline-flex items-center gap-2 px-6 py-3 rounded-lg font-semibold text-sm transition-all duration-200 active:scale-95 select-none';
 
-export default function Button({ text, url, external = false }: ButtonProps) {
+export default function Button({
+  text,
+  url,
+  external = false,
+}: ButtonProps) {
   return (
     <a
       href={url}
