@@ -1,0 +1,155 @@
+# Addons
+
+Addons are external JAR files that extend Cobalt at runtime. They live in `config/cobalt/addons/` and are loaded when the mod starts.
+
+## Anatomy of an addon
+
+Every addon needs two things:
+
+1. **A `cobalt.addon.json`** manifest file at the root of your JAR
+2. **At least one entrypoint class** implementing the `Addon` interface
+
+### Manifest (`cobalt.addon.json`)
+
+```json
+{
+  "id": "myaddon",
+  "name": "My Addon",
+  "version": "1.0.0",
+  "entrypoints": ["com.example.MyAddon"],
+  "mixins": []
+}
+```
+
+| Field | Required | Description |
+|-------|----------|-------------|
+| `id` | yes | Unique identifier |
+| `name` | yes | Human-readable name |
+| `version` | yes | Version string |
+| `entrypoints` | yes | List of class names implementing `Addon` |
+| `mixins` | no | Mixin config paths to apply |
+
+### Entrypoint class
+
+```kotlin
+package com.example
+
+import org.cobalt.addon.Addon
+
+class MyAddon : Addon {
+
+    override fun onLoad() {
+        println("Hello from my addon!")
+    }
+
+    override fun onUnload() {
+        println("Goodbye!")
+    }
+    
+}
+```
+
+## What addons can do
+
+From `onLoad()` you can:
+
+- **Register modules** via `ModuleManager.addModule()`
+- **Register commands** via `CommandManager.registerCommand()`
+- **Register event listeners** via `EventBus.register()`
+- **Load config** for your own data
+
+```kotlin
+override fun onLoad() {
+    ModuleManager.addModule(MyModule)
+    CommandManager.registerCommand(MyCommand)
+    EventBus.register(this)
+}
+```
+
+## Addon as an object/companion
+
+If your entrypoint class has an `INSTANCE` field (Kotlin `object`), the addon system picks it up automatically:
+
+```kotlin
+object MyAddon : Addon {
+    override fun onLoad() { ... }
+    override fun onUnload() { ... }
+}
+```
+
+## Mixins in addons
+
+Addons can include their own mixins. List the config paths in `cobalt.addon.json`:
+
+```json
+{
+  "id": "myaddon",
+  "entrypoints": ["com.example.MyAddon"],
+  "mixins": ["myaddon.mixins.json"]
+}
+```
+
+The mixin config is loaded before your entrypoint is constructed.
+
+## Development mode
+
+If Fabric is running in a development environment (e.g. `runClient` in IntelliJ), addons are picked up via Fabric's entrypoint system using the `cobalt` entrypoint key. This means during development you can use the standard Fabric dev setup without packaging a JAR every time.
+
+If your addon uses mixins, you need to declare them in `fabric.mod.json` as well as `cobalt.addon.json` for them to be picked up in dev:
+
+```json
+{
+  "id": "myaddon",
+  "mixins": ["myaddon.mixins.json"]
+}
+```
+
+## Example addon template
+
+A minimal base template is available at [CobaltScripts/ExampleAddon](https://github.com/CobaltScripts/ExampleAddon). Clone it to skip the boilerplate:
+
+```bash
+git clone https://github.com/CobaltScripts/ExampleAddon.git
+```
+
+## Project setup
+
+Add the **JitPack** and **CCBlueX** repository and **Cobalt dependency** to your `build.gradle.kts`:
+
+```kotlin
+repositories {
+    maven("https://jitpack.io")
+    maven("https://maven.ccbluex.net/snapshots")
+}
+
+dependencies {
+    implementation("com.github.CobaltScripts:Cobalt:${property("cobalt_version")}")
+    implementation("com.jagrosh:DiscordIPC:0.6.0-SNAPSHOT")
+}
+```
+
+Set `cobalt_version` in `gradle.properties`. JitPack resolves any Git ref — a tag, commit hash, or branch:
+
+```properties
+cobalt_version=1.0.1.7d4c3ea   # specific commit
+# cobalt_version=main-SNAPSHOT # latest commit on main
+```
+
+The `DiscordIPC` dependency is required.
+
+## Building
+
+```bash
+./gradlew build
+```
+
+On Linux, you may need to make Gradle executable first:
+
+```bash
+chmod +x gradlew
+./gradlew build
+```
+
+The built JAR will be in `build/libs/`. Drop it into `config/cobalt/addons/` and restart the game.
+
+If your addon has mixins, the Fabric Loom plugin handles everything automatically — you just need the mixin config declared in both `cobalt.addon.json` and `fabric.mod.json`.

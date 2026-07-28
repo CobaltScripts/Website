@@ -1,0 +1,40 @@
+# Getting Started
+
+This guide covers the core concepts you'll need to build on top of Cobalt. The mod is built around a few key systems that work together.
+
+## Architecture overview
+
+```
+Cobalt (mod)
+├── Modules        → Toggleable features (AutoClicker, etc.)
+├── Scripts        → State-machine automation (Fishing, etc.)
+├── Failsafes      → Emergency reactions for scripts
+├── Commands       → Chat commands (prefix: .)
+├── Events         → Hook into Minecraft and mod lifecycle
+├── Addons         → External JAR extensions
+├── UI             → Config screens, HUD editor, themes
+└── Utilities      → Chat, inventory, rotation, rendering, etc.
+```
+
+## Mod entry point
+
+Cobalt itself is a Fabric `ClientModInitializer`. Initialization order:
+
+1. Themes are loaded
+2. Addons are discovered and loaded
+3. Built-in modules are registered
+4. Built-in commands are registered
+5. Failsafe manager starts listening
+6. Key mappings are registered
+
+Your addon's `onLoad()` is called after themes are loaded but before modules and commands are registered, giving you a chance to register your own.
+
+## Next steps
+
+Pick a topic from the sidebar based on what you want to add:
+- **Addon** → a full extension packed as a JAR
+- **Module** → a toggleable feature with settings
+- **Script** → an automated state-machine task
+- **Command** → a chat command with arguments
+- **Event** → reacting to game events
+- **Utility** → convenience APIs for common tasks

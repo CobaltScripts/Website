@@ -1,0 +1,80 @@
+# Failsafes
+
+Failsafes are emergency reactions attached to scripts. They monitor for dangerous conditions and react when triggered, pausing the script until the situation is resolved.
+
+## Creating a failsafe
+
+Extend `Failsafe` and implement the two abstract methods:
+
+```kotlin
+class AntiFall : Failsafe(
+    name = "Anti Fall",
+    priority = 10  // higher = checked first
+) {
+    override fun resetStates() {
+        // Clear any state when a failsafe is stopped
+    }
+
+    override fun performReaction(): ReactionResult {
+        // Do the emergency action
+        Keyboard.setKeyState(minecraft.options.keyShift, true)
+
+        if (PlayerUtils.onGround) {
+            return ReactionResult.FINISHED
+        }
+        return ReactionResult.CONTINUE
+    }
+}
+```
+
+- Return `CONTINUE` while the reaction is still in progress
+- Return `FINISHED` when the danger is resolved
+
+## Attaching failsafes to a script
+
+Pass them in the Script constructor:
+
+```kotlin
+object MyScript : Script(
+    name = "MyScript",
+    category = ModuleCategory.SKILLS,
+    failsafes = listOf(AntiFall(), AntiStuck())
+)
+```
+
+## How failsafes work
+
+```
+Script running → Failsafe triggered
+    ↓
+FailsafeManager pauses the script
+    ↓
+performReaction() called every tick
+    ↓
+Reaction FINISHED → script resumes
+```
+
+Failsafes are queued by priority. Higher priority failsafes run first. If multiple failsafes trigger simultaneously, they queue up and run one at a time.
+
+## Reaction results
+
+```kotlin
+enum class ReactionResult {
+    CONTINUE,  // still reacting, call again next tick
+    FINISHED   // done, resume the script
+}
+```
+
+## Triggering a failsafe
+
+Failsafes don't trigger themselves. You trigger them from your script or from event listeners:
+
+```kotlin
+FailsafeManager.addToQueue(AntiFall())
+```
+
+The failsafe also needs to be **enabled** (modules can be toggled on/off independently). Failsafes start enabled by default unless you pass `startValue = false`.
+
+## Config
+
+Failsafe settings (enabled/disabled) are saved per-failsafe just like any module, under `config/cobalt/modules/`.

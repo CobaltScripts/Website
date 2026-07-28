@@ -1,0 +1,164 @@
+# Settings
+
+Modules expose settings that are automatically rendered in the config GUI and persisted to disk. Each setting type is a concrete class in `ui.component.setting.impl`.
+
+## Available types
+
+### CheckboxSetting
+
+A boolean toggle.
+
+```kotlin
+private val enabled by CheckboxSetting(
+    name = "Enabled",
+    description = "Turn it on or off",
+    defaultValue = true
+)
+```
+
+### SliderSetting
+
+An integer slider with a range.
+
+```kotlin
+private val delay by SliderSetting(
+    name = "Delay",
+    description = "Delay in milliseconds",
+    defaultValue = 100,
+    min = 10,
+    max = 1000
+)
+```
+
+### ModeSetting
+
+A multi-select cycling through string options. Value is the selected index.
+
+```kotlin
+private val mode by ModeSetting(
+    name = "Mode",
+    description = "Which strategy to use",
+    defaultValue = 0,
+    options = arrayOf("Simple", "Advanced", "Expert")
+)
+
+when (mode) {
+    0 -> /* Simple */
+    1 -> /* Advanced */
+    2 -> /* Expert */
+}
+```
+
+### TextSetting
+
+A text input field.
+
+```kotlin
+private val filter by TextSetting(
+    name = "Mob Filter",
+    description = "Only target these mobs (comma separated)",
+    defaultValue = "",
+    placeholder = "Enter mob name..."
+)
+```
+
+### RangeSetting
+
+A dual-knob range selector. Value is `Pair<Int, Int>`.
+
+```kotlin
+private val range by RangeSetting(
+    name = "Range",
+    description = "Min and max distance",
+    defaultValue = Pair(5, 15),
+    min = 1,
+    max = 30
+)
+
+range.first  // min
+range.second // max
+```
+
+### KeyBindSetting
+
+A keybinding picker. Click to rebind, Escape to clear.
+
+```kotlin
+private val key by KeyBindSetting(
+    name = "Activation Key",
+    description = "Press to activate",
+    defaultValue = InputConstants.UNKNOWN
+)
+
+// Or use a key code directly:
+private val key by KeyBindSetting(
+    name = "Activation Key",
+    description = "Press to activate",
+    defaultKeyCode = GLFW.GLFW_KEY_R
+)
+
+// Check if the bound key is held:
+Keyboard.isKeyDown(key)
+```
+
+### ButtonSetting
+
+An action button. Tapping it runs a callback.
+
+```kotlin
+private val resetBtn by ButtonSetting(
+    name = "Reset",
+    description = "Restore default settings",
+    buttonLabel = "Reset All",
+    onClick = Runnable { loadConfig() }
+)
+```
+
+### InfoSetting
+
+An information banner with an icon (not persisted).
+
+```kotlin
+private val info by InfoSetting(
+    text = "This feature requires a fishing rod in your hotbar",
+    type = InfoSetting.Type.INFO
+)
+```
+
+Types: `INFO`, `WARNING`, `SUCCESS`, `ERROR` — each renders with a different icon and color.
+
+## Delegate pattern
+
+Settings use Kotlin's `by` delegation. This automatically registers them with the module's `SettingContainer` and wires up get/set:
+
+```kotlin
+private val mySetting by CheckboxSetting(...)
+//                                    ↓
+//  mySetting  →  getValue() / setValue()  →  reads/writes `value`
+//  addSettings(mySetting)  →  called automatically
+```
+
+Access settings directly by name — no `.value` property needed:
+
+```kotlin
+if (mySetting) { /* enabled */ }
+println("delay = $delay")
+```
+
+## Config files
+
+For one-off data that doesn't need the full setting system, use `SimpleConfig`:
+
+```kotlin
+data class MyData(val name: String = "default", val count: Int = 0)
+
+val config = SimpleConfig(
+    path = "/path/to/file.json",
+    clazz = MyData::class.java
+)
+
+val data = config.load()     // null if doesn't exist
+config.save(MyData("hello", 42))
+```
+
+This is what the ThemeManager uses internally for its settings file.

@@ -1,0 +1,385 @@
+# Utilities
+
+Cobalt provides a set of utility objects for common tasks. These are designed to be used from modules, scripts, and addons.
+
+## Chat
+
+### Sending messages
+
+```kotlin
+// Formatted system message with gradient prefix
+ChatUtils.sendSystemMessage("Hello, <green>world!</green>")
+
+// Custom message type
+ChatUtils.sendSystemMessage("Debug info", MessageType.DEBUG)
+
+// Raw (no prefix)
+ChatUtils.sendSystemMessage("<red>Error</red>", MessageType.RAW)
+
+// Send as the player (in chat)
+ChatUtils.sendPlayerMessage("/hub")
+
+// Execute a command silently
+ChatUtils.sendCommand("hub")
+```
+
+### Formatting
+
+The chat formatter supports HTML-like tags:
+
+```
+<red>, <blue>, <green>, <gray>, <dark_gray>, <gold>, <aqua>, <yellow>, <light_purple>
+<b>/<bold>, <i>/<italic>, <u>/<underline>, <st>/<strikethrough>, <obf>/<obfuscated>
+<reset>
+<gradient:#hex1:#hex2>text</gradient>
+<#ff0000>hex colors</#ff0000>
+```
+
+### Gradient building
+
+```kotlin
+val gradient = ChatUtils.buildGradientComponent(
+    text = "Cobalt",
+    startColor = 0x4CADD0,
+    endColor = 0xB2F9FF
+)
+```
+
+## Player
+
+```kotlin
+PlayerUtils.ign              // "Notch"
+PlayerUtils.rotation         // current Rotation(yaw, pitch)
+PlayerUtils.velocity         // Vec3
+PlayerUtils.blockStandingOn  // BlockPos
+PlayerUtils.onGround         // Boolean
+PlayerUtils.isInventoryFull  // Boolean
+PlayerUtils.isInventoryEmpty // Boolean
+PlayerUtils.canFly           // Boolean
+PlayerUtils.isFlying         // Boolean
+PlayerUtils.isSuffocating    // Boolean
+
+// Set player rotation (with normalization)
+PlayerUtils.setRotation(Rotation(90f, 0f))
+
+// Close open screen/container
+PlayerUtils.closeScreen()
+```
+
+## Window
+
+```kotlin
+val w = WindowUtils.windowWidth   // Float
+val h = WindowUtils.windowHeight  // Float
+val sx = WindowUtils.scaleX       // width / 1920
+val sy = WindowUtils.scaleY       // height / 1080
+```
+
+## Input
+
+### Keyboard
+
+```kotlin
+// Press a key once
+Keyboard.press(minecraft.options.keyJump)
+
+// Hold/release keys
+Keyboard.setKeyState(minecraft.options.keyAttack, true)
+Keyboard.setKeyState(minecraft.options.keyUse, false)
+
+// Stop all movement
+Keyboard.stopMovement()
+
+// Hold specific keys, release all others
+Keyboard.holdThese(minecraft.options.keyUp, minecraft.options.keyJump)
+
+// Release all except
+Keyboard.releaseAllExcept(minecraft.options.keyShift)
+
+// Check if a key is down
+Keyboard.isKeyDown(InputConstants.KEY_W)
+
+// Pre-built arrays for convenience
+Keyboard.allKeys        // attack, use, movement, jump, shift, sprint
+Keyboard.movementKeys   // wasd, jump, shift
+```
+
+### Mouse
+
+```kotlin
+// Click buttons
+Mouse.leftClick()
+Mouse.rightClick()
+Mouse.middleClick()
+
+// Hit detection
+Mouse.isHoveringOver(x, y, width, height)  // Boolean
+
+// Cursor position
+Mouse.mouseX  // Float
+Mouse.mouseY  // Float
+
+// Mouse mode
+Mouse.mouseMode = MouseMode.UNGRAB_MOUSE  // free cursor
+Mouse.mouseMode = MouseMode.LOCK_MOUSE    // locked in place
+Mouse.mouseMode = MouseMode.DEFAULT       // normal behavior
+```
+
+## Inventory
+
+```kotlin
+// Click a slot
+InventoryUtils.clickSlot(36, MouseButton.LEFT)
+
+// Select a hotbar slot (0-8, returns false if invalid)
+InventoryUtils.selectHotbarSlot(3)
+
+// Hold a named item from hotbar
+InventoryUtils.holdItem("Fishing Rod")
+
+// Find items
+InventoryUtils.findItemInHotbar("Sword")              // slot index or -1
+InventoryUtils.findItemInInventory("Rotten Flesh")    // slot index or -1
+InventoryUtils.findItemInInventory(Items.ROTTEN_FLESH) // by Item type
+InventoryUtils.findItemInContainer("Enchanted Book")  // in open container
+InventoryUtils.findItemInContainer(Items.BOOK)
+
+// Find items by lore text
+InventoryUtils.findItemInHotbarWithLore("§6Legendary")
+InventoryUtils.findItemInInventoryWithLore("§cCommon")
+```
+
+### Item inspection
+
+```kotlin
+val loreLines = ItemUtils.getLoreLines(itemStack)  // List<Component>
+```
+
+## Rotation
+
+### Getting rotation to a target
+
+```kotlin
+// To a position
+val rot = RotationMath.getRotation(Vec3(x, y, z))
+
+// Between two points
+val rot = RotationMath.getRotation(fromVec, toVec)
+
+// Angle difference
+val diff = RotationMath.angleDifference(90f, 45f) // 45.0
+
+// Check if close enough
+RotationMath.approximatelyEquals(currentRot, targetRot, tolerance = 2f)
+```
+
+### Rotation objects
+
+```kotlin
+// Basic rotation
+Rotation(yaw = 90f, pitch = 0f)
+
+// Normalize for server (accounts for sensitivity/GCD)
+val normalized = rotation.normalize(currentPlayerRotation)
+
+// Delta between rotations
+val delta = current.rotationDeltaTo(target)
+delta.deltaYaw    // Float
+delta.deltaPitch  // Float
+```
+
+### RotationTarget
+
+A flexible way to specify what to look at:
+
+```kotlin
+RotationTarget(entity)           // track an Entity
+RotationTarget(Vec3(x, y, z))    // track a position
+RotationTarget(BlockPos(x, y, z)) // track a block
+RotationTarget(Rotation(y, p))   // absolute rotation
+
+// Resolve to the target rotation
+val mainTarget = rotationTarget.targetRotation
+```
+
+### Rotations module
+
+The built-in Rotations module handles smooth, humanized rotation so you don't have to write the math yourself. It is always running (non-toggleable) and exposes its API publicly.
+
+#### Rotate mode
+
+Smoothly rotates from your current angle to a target, then stops when it arrives:
+
+```kotlin
+// Rotate to face a specific yaw/pitch
+Rotations.start(Rotation(yaw = 90f, pitch = 0f))
+
+// Rotate to face a block
+Rotations.start(RotationMath.getRotation(Vec3.atCenterOf(blockPos)))
+```
+
+Once the rotation reaches the target (within the configured tolerance), it stops automatically.
+
+#### Track mode
+
+Continuously follows a moving target — useful for entities:
+
+```kotlin
+// Track a moving entity
+Rotations.track(RotationTarget(entity))
+
+// Track a position
+val target = RotationTarget(Vec3(x, y, z))
+Rotations.track(target)
+
+// Update the target each tick
+// (the RotationTarget holds a reference, so it updates automatically
+//  if you pass an Entity that moves)
+```
+
+Tracking applies a random factor and deceleration at close range to look more natural. Configure tracking speed to control how aggressively it follows.
+
+#### Stopping
+
+```kotlin
+Rotations.stop()
+```
+
+Stops any active rotation or tracking. The mouse mode is restored automatically.
+
+#### Checking state
+
+```kotlin
+Rotations.running  // Boolean
+```
+
+#### Settings
+
+All settings are live — change them while running:
+
+| Setting | Range | Default | Effect |
+|---------|-------|---------|--------|
+| `Turn Speed Yaw` | 1–180 | 45 | Max yaw degrees per tick |
+| `Turn Speed Pitch` | 1–90 | 30 | Max pitch degrees per tick |
+| `Midpoint` | 0–100 | 35 | When to switch from sigmoid to bezier curve |
+| `Smoothing` | 1–10 | 5 | Overall smoothing power |
+| `End Tolerance` | 1–5 | 1 | Degrees from target considered "close enough" |
+| `Tracking Speed` | 1–50 | 25 | How fast tracking follows (higher = snappier) |
+
+#### Practical example
+
+```kotlin
+@SubscribeEvent
+fun onTick(event: TickEvent.Start) {
+    if (!Rotations.running) return
+
+    // If using track mode, the target updates as the entity moves
+    val target = entityTarget ?: return
+    Rotations.track(target)
+}
+```
+
+#### How it differs from PlayerUtils.setRotation
+
+| Approach | Use |
+|----------|-----|
+| `PlayerUtils.setRotation(rotation)` | Instant snap, no animation |
+| `Rotations.start(rotation)` | Smooth animated rotation, one-shot |
+| `Rotations.track(target)` | Continuous smooth tracking for moving targets |
+
+The Rotations module also normalizes for GCD/sensitivity automatically and locks the mouse while active to prevent interference.
+
+## Cobalt globals
+
+```kotlin
+Cobalt.minecraft         // Minecraft.getInstance()
+Cobalt.configDir         // Path to config/cobalt/
+Cobalt.MOD_ID            // "cobalt"
+Cobalt.MOD_NAME          // "Cobalt"
+Cobalt.MOD_VERSION       // version string
+Cobalt.MINECRAFT_VERSION // current MC version
+
+// Run code on the client thread (safe from any thread)
+Cobalt.runOnClientThread {
+    // mc calls here
+}
+```
+
+## Color utils
+
+```kotlin
+import org.cobalt.util.color.*
+
+// Extract channels from Int color
+val r = colorInt.red
+val g = colorInt.green
+val b = colorInt.blue
+val a = colorInt.alpha
+
+// Change alpha on a java.awt.Color
+Color(255, 0, 0).updateAlpha(128)  // semi-transparent red
+```
+
+## Scheduling
+
+### TickScheduler
+
+Run a task after a delay in game ticks:
+
+```kotlin
+TickScheduler.schedule(20L) {  // 20 ticks = 1 second
+    minecraft.gui.setScreen(ConfigScreen)
+}
+```
+
+### Clock
+
+A simple timer for cooldowns:
+
+```kotlin
+val timer = Clock()
+
+timer.schedule(1000) // wait 1000ms
+// later:
+if (timer.passed()) {
+    // do thing
+    timer.schedule(500)
+}
+timer.isScheduled  // Boolean
+timer.reset()
+```
+
+### Multithreading
+
+Run work off the main thread:
+
+```kotlin
+Multithreading.runAsync {
+    // Heavy computation here
+    Thread.sleep(100)
+    // Don't call Minecraft APIs here (not thread-safe)
+}
+```
+
+## Server data
+
+### Connection tracker
+
+```kotlin
+ConnectionTracker.averageTps  // Double (0.0 - 20.0)
+ConnectionTracker.currentPing // Int (ms)
+ConnectionTracker.averagePing // Int (ms)
+```
+
+### Scoreboard
+
+```kotlin
+Scoreboard.title  // Component?
+Scoreboard.lines  // List<Component>
+```
+
+### Tablist
+
+```kotlin
+Tablist.lines  // List<Component> (sorted, no spectators last)
+```

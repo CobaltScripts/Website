@@ -1,0 +1,301 @@
+# Rendering
+
+Cobalt uses Skia (via Skija) for hardware-accelerated 2D UI rendering and Minecraft Gizmos for world-space outlines.
+
+## SkiaRenderer
+
+The main 2D drawing API. All calls go through `SkiaRenderer` which wraps a Skija `Canvas`.
+
+### Coordinate system
+
+Same as Minecraft's screen coordinates: origin at top-left, x right, y down. Use `WindowUtils.scaleX` / `scaleY` for resolution-independent positioning.
+
+### Transform stack
+
+```kotlin
+SkiaRenderer.push()       // save current transform
+SkiaRenderer.translate(x, y)  // move origin
+SkiaRenderer.scale(sx, sy)     // scale
+SkiaRenderer.rotate(degrees)   // rotate
+SkiaRenderer.pop()        // restore previous transform
+
+SkiaRenderer.globalAlpha(0.5f) // set opacity (0-1)
+```
+
+### Primitives
+
+```kotlin
+// Solid rectangle
+SkiaRenderer.rect(x, y, width, height, color)
+
+// Rectangle outline
+SkiaRenderer.outline(x, y, width, height, thickness, color)
+
+// Rounded rectangle
+SkiaRenderer.roundedRect(x, y, width, height, radius, color)
+
+// Rounded outline
+SkiaRenderer.roundedOutline(x, y, width, height, thickness, radius, color)
+
+// Circle
+SkiaRenderer.circle(x, y, radius, color)
+
+// Line
+SkiaRenderer.line(x1, y1, x2, y2, thickness, color)
+```
+
+### Corner control
+
+`roundedRect` and `roundedOutline` accept a `corners` parameter to pick which corners round:
+
+```kotlin
+import org.cobalt.util.render.skia.data.SkiaCorner
+
+SkiaCorner.ALL              // all four corners
+SkiaCorner.TOP_SIDE        // top-left + top-right
+SkiaCorner.BOTTOM_SIDE     // bottom-left + bottom-right
+SkiaCorner.LEFT_SIDE       // top-left + bottom-left
+SkiaCorner.RIGHT_SIDE      // top-right + bottom-right
+arrayOf(SkiaCorner.TOP_LEFT, SkiaCorner.BOTTOM_RIGHT) // any combo
+
+SkiaRenderer.roundedRect(x, y, w, h, 5f, color, SkiaCorner.BOTTOM_SIDE)
+```
+
+### Text
+
+Two built-in fonts are available (Product Sans):
+
+```kotlin
+SkiaRenderer.regularFont  // ProductSans-Regular
+SkiaRenderer.boldFont      // ProductSans-Bold
+
+// Draw text
+SkiaRenderer.text(
+    font = SkiaRenderer.regularFont,
+    text = "Hello",
+    x = 10f, y = 20f,
+    size = 16f,
+    color = theme.textPrimary
+)
+
+// Measure text width
+val width = SkiaRenderer.textWidth(SkiaRenderer.boldFont, "Hello", 16f)
+
+// Word-wrapped text
+SkiaRenderer.wrappedText(
+    font = SkiaRenderer.regularFont,
+    text = "Long text that wraps",
+    x = 10f, y = 20f,
+    width = 200f,
+    size = 16f,
+    color = theme.textPrimary,
+    lineHeight = 1.2f
+)
+
+// Get wrapped text height (for layout calculation)
+val height = SkiaRenderer.wrappedTextHeight(
+    font, text, maxWidth, fontSize, lineHeight
+)
+```
+
+### Images
+
+Load and draw images. Supports PNG and SVG (SVGs can be tinted).
+
+```kotlin
+// Load once, cache automatically
+val icon = SkiaRenderer.createImage("/assets/cobalt/ui/info.svg")
+
+// Draw
+SkiaRenderer.image(
+    image = icon,
+    x = 10f, y = 10f,
+    width = 32f, height = 32f,
+    radius = 5f,       // optional rounded corners
+    color = theme.info  // optional tint (SVG only)
+)
+
+// Blurred version
+SkiaRenderer.blurredImage(
+    image = icon,
+    x = 10f, y = 10f,
+    width = 32f, height = 32f,
+    radius = 8f,        // blur amount
+    cornerRadius = 5f   // rounded corners
+)
+
+// Get dimensions
+val (w, h) = SkiaRenderer.imageSize(icon)
+
+// Clean up when no longer needed
+SkiaRenderer.deleteImage(icon)
+```
+
+### Scissor / clipping
+
+Clip drawing to a region:
+
+```kotlin
+SkiaRenderer.pushScissor(x, y, width, height, radius = 5f)
+// clipped drawing here
+SkiaRenderer.popScissor()
+```
+
+### Data types
+
+#### `SkiaFont`
+
+Wraps a TTF file path from resources:
+
+```kotlin
+val customFont = SkiaFont("/assets/cobalt/fonts/MyFont.ttf")
+SkiaRenderer.text(font = customFont, ...)
+```
+
+Fonts are cached by `(SkiaFont, size)` internally, so you can reuse the same `SkiaFont` at different sizes without overhead.
+
+#### `SkiaImage`
+
+Wraps an image resource path. Detects SVG automatically:
+
+```kotlin
+// PNG or SVG
+val img = SkiaImage("/assets/cobalt/ui/module.svg")
+img.location  // path
+img.isSvg     // true if .svg
+img.bytes     // raw bytes (loaded lazily)
+```
+
+Always create images through `SkiaRenderer.createImage()` rather than constructing directly — it handles caching.
+
+#### `SkiaCorner`
+
+Controls which corners are rounded on `roundedRect` / `roundedOutline`:
+
+```kotlin
+SkiaCorner.TOP_LEFT
+SkiaCorner.TOP_RIGHT
+SkiaCorner.BOTTOM_LEFT
+SkiaCorner.BOTTOM_RIGHT
+
+// Pre-built combos
+SkiaCorner.ALL        // default
+SkiaCorner.TOP_SIDE
+SkiaCorner.BOTTOM_SIDE
+SkiaCorner.LEFT_SIDE
+SkiaCorner.RIGHT_SIDE
+```
+
+### When SkiaRenderer is available
+
+- Inside a `UIScreen.renderSkia()` — the canvas is already active
+- Inside `SkiaPIP.drawSkia(graphics) { ... }` — for HUD rendering
+- Inside a `RenderableModule.renderComponent()` — called from the HUD render pass
+
+### Full example
+
+```kotlin
+class MyComponent : UIComponent(width = 200f, height = 100f) {
+    private val icon = SkiaRenderer.createImage("/assets/cobalt/ui/module.svg")
+
+    override fun renderComponent() {
+        SkiaRenderer.pushScissor(xPos, yPos, width, height)
+
+        SkiaRenderer.roundedRect(xPos, yPos, width, height, 8f, theme.backgroundPrimary)
+        SkiaRenderer.roundedOutline(xPos, yPos, width, height, 1f, 8f, theme.border)
+
+        SkiaRenderer.image(icon, xPos + 10f, yPos + 10f, 24f, 24f, color = theme.accentPrimary)
+        SkiaRenderer.text(SkiaRenderer.boldFont, "Title", xPos + 40f, yPos + 16f, 14f, theme.textPrimary)
+        SkiaRenderer.wrappedText(SkiaRenderer.regularFont, "Description", xPos + 10f, yPos + 50f, width - 20f, 12f, theme.textSecondary)
+
+        SkiaRenderer.popScissor()
+    }
+}
+```
+
+## GizmoRenderer
+
+For world-space rendering (3D boxes, lines, tracers). Uses Minecraft's built-in gizmo system.
+
+```kotlin
+import org.cobalt.util.render.GizmoRenderer
+
+// Box around a block
+GizmoRenderer.drawBlockPos(BlockPos(x, y, z), color)
+
+// Box from an AABB
+GizmoRenderer.drawBox(AABB(x1, y1, z1, x2, y2, z2), color)
+
+// Entity outline (interpolated position)
+GizmoRenderer.drawEntityOutline(entity, color)
+
+// Tracer line from camera to position
+GizmoRenderer.drawTracer(Vec3(x, y, z), color)
+```
+
+### ESP (always-on-top)
+
+All draw functions accept `esp = true` to render through walls:
+
+```kotlin
+GizmoRenderer.drawBlockPos(BlockPos.ZERO, theme.accentPrimary, esp = true)
+```
+
+### Line width
+
+Control thickness with `lineWidth`:
+
+```kotlin
+GizmoRenderer.drawBox(box, color, lineWidth = 2f)
+```
+
+### Frustum culling
+
+Skip rendering off-screen gizmos with `FrustumUtils`:
+
+```kotlin
+import org.cobalt.util.block.FrustumUtils
+
+@SubscribeEvent
+fun onRender(event: WorldEvent.BeforeGizmos) {
+    val camera = minecraft.gameRenderer.mainCamera()
+    val frustum = Frustum(camera.coordinate, camera.getFrustum())
+
+    if (FrustumUtils.isVisible(frustum, targetBox)) {
+        GizmoRenderer.drawBlockPos(targetPos, theme.accentPrimary)
+    }
+}
+```
+
+### When to use GizmoRenderer
+
+Gizmos are rendered in the world render pass. Call from `WorldEvent.BeforeGizmos`:
+
+```kotlin
+@SubscribeEvent
+fun onRender(event: WorldEvent.BeforeGizmos) {
+    GizmoRenderer.drawBlockPos(targetPos, theme.accentPrimary)
+}
+```
+
+Or from a script state's `onRender()`.
+
+### Full example: looking at a block
+
+```kotlin
+class BlockMarker : Module(name = "BlockMarker", category = ModuleCategory.VISUAL) {
+    private var target: BlockPos? = null
+
+    @SubscribeEvent
+    fun onRender(event: WorldEvent.BeforeGizmos) {
+        target?.let {
+            GizmoRenderer.drawBlockPos(it, theme.accentPrimary, esp = true)
+            GizmoRenderer.drawTracer(
+                Vec3.atCenterOf(it),
+                theme.accentSecondary,
+                lineWidth = 0.5f
+            )
+        }
+    }
+}
+```
